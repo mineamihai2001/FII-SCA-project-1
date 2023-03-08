@@ -1,4 +1,5 @@
 import socket
+import CLI
 from dotenv import dotenv_values
 
 config = dotenv_values("../.env")
@@ -25,8 +26,15 @@ class Client:
             print(f"[ERROR] - connect error - {e}")
 
     def comm_loop(self) -> None:
-        self.send("Hello world!")
-        self.receive()
+        # request shop available items
+        message = CLI.main_menu()
+        self.send(message)
+        shop_data = self.receive()
+        
+        # submit a purchase
+        message = CLI.products_menu(shop_data)
+        self.send(message)
+        response = self.receive()
 
     def send(self, message: str):
         message_buffer = str.encode(message)

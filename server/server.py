@@ -1,6 +1,8 @@
 import socket
 from dotenv import dotenv_values
 from typing import Callable, Any
+import utils
+import json
 
 config = dotenv_values("../.env")
 
@@ -35,8 +37,13 @@ class Server:
             self.conn = conn
             with conn:
                 print(f"Client {addr} connected")
+                # receive shop request
                 msg = self.receive()
-                self.send("Hello there")
+                self.send(json.dumps(utils.get_shop_items()))
+
+                # receive purchase submit
+                msg = self.receive()
+                self.send(msg)
 
     def receive(self) -> str:
         header = self.conn.recv(2)
