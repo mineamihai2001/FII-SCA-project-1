@@ -2,6 +2,10 @@ import rsa
 from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 
+##########
+#   RSA
+##########
+
 
 def generate_rsa_keys(out_dir: str):
     public_key, private_key = rsa.newkeys(1024)
@@ -19,26 +23,30 @@ def load_rsa_keys(source: str):
     return private_key, public_key
 
 
-def encrypt_rsa(message: str, key):
+def rsa_encrypt(message: str, key):
     return rsa.encrypt(message.encode('ascii'), key)
 
 
-def decrypt_rsa(cipher_text: bytes, key):
+def rsa_decrypt(cipher_text: bytes, key):
     try:
         return rsa.decrypt(cipher_text, key).decode('ascii')
     except:
         return False
 
 
-def sign_rsa(message: str, key):
+def rsa_sign(message: str, key):
     return rsa.sign(message.encode('ascii'), key, 'SHA-1')
 
 
-def verify(message: str, signature: bytes, key):
+def rsa_verify(message: str, signature: bytes, key):
     try:
         return rsa.verify(message.encode('ascii'), signature, key,) == 'SHA-1'
     except:
         return False
+
+##########
+#   AES
+##########
 
 
 def generate_aes_key(out_dir: str | None = None):
@@ -50,14 +58,14 @@ def generate_aes_key(out_dir: str | None = None):
     return key
 
 
-def encrypt_aes(data: bytes, key: bytes):
+def aes_encrypt(data: bytes, key: bytes):
     cipher = AES.new(key, AES.MODE_EAX)
     cipher_text, tag = cipher.encrypt_and_digest(data)
     nonce = cipher.nonce
     return cipher_text, nonce, tag
 
 
-def decrypt_aes(cipher_text: bytes, nonce: bytes, tag: bytes, key: bytes):
+def aes_decrypt(cipher_text: bytes, nonce: bytes, tag: bytes, key: bytes):
     cipher = AES.new(key, AES.MODE_EAX, nonce)
     data = cipher.decrypt_and_verify(cipher_text, tag)
     return data
@@ -67,10 +75,10 @@ if __name__ == "__main__":
     generate_rsa_keys("../server/certs")
     private_key, public_key = load_rsa_keys("../server/certs")
     message = "Hello there"
-    cipher_text = encrypt_rsa(message, public_key)
+    cipher_text = rsa_encrypt(message, public_key)
 
-    signature = sign_rsa(message, private_key)
-    text = decrypt_rsa(cipher_text, private_key)
+    signature = rsa_sign(message, private_key)
+    text = rsa_decrypt(cipher_text, private_key)
 
     print(">> [RSA] - ", cipher_text)
     print(">> [RSA] - ", signature)
@@ -78,6 +86,6 @@ if __name__ == "__main__":
 
     #### AES ####
     key = generate_aes_key("../server/certs")
-    cipher_text, nonce, tag = encrypt_aes(b"testing123", key)
+    cipher_text, nonce, tag = aes_encrypt(b"testing123", key)
     print(">> [AES] - ", cipher_text)
-    print(">> [AES] -", decrypt_aes(cipher_text, nonce, tag, key))
+    print(">> [AES] -", aes_decrypt(cipher_text, nonce, tag, key))
