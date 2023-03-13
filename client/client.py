@@ -1,5 +1,8 @@
 import socket
 import CLI
+import web_segment
+import json
+from binascii import hexlify
 from dotenv import dotenv_values
 
 config = dotenv_values("../.env")
@@ -30,11 +33,30 @@ class Client:
         message = CLI.main_menu()
         self.send(message)
         shop_data = self.receive()
-        
+
         # submit a purchase
-        message = CLI.products_menu(shop_data)
-        self.send(message)
+        amount = CLI.products_menu(shop_data)
+        self.send(amount)
+        # recieves the payment Web segment with the digital certificates
         response = self.receive()
+        print("Received: ", response)
+
+        webSegment = web_segment.WebSegment(amount)
+        # step 1
+        step1_message = webSegment.step1()
+        self.send(step1_message)
+
+        # step 2
+        step2_msg = self.receive()
+        try:
+            if webSegment.step2(json.loads(step2_msg)):
+                print(f"[DEBUG] M authenticated")
+        except BaseException as e:
+            print(f"[ERROR] - M can't be authenticated - {e}")
+        
+        # step 3
+        step3_msg = webSegment.step3()
+        self.send(step3_msg)
 
     def send(self, message: str):
         message_buffer = str.encode(message)
