@@ -1,0 +1,7 @@
+{
+    "items":[
+        {"name":"milk", "price":"8.00"},
+        {"name":"flour", "price":"4.50"},
+        {"name":"rice", "price":"7.20"}
+    ]
+}
